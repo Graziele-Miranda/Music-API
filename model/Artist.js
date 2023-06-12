@@ -10,7 +10,7 @@ const ArtistModel = sequelize.define("Artist", {
   nome: DataTypes.STRING,
   genero: DataTypes.STRING,
   paisOrigem: DataTypes.STRING,
-  biografia: DataTypes.STRING,
+  biografia: DataTypes.TEXT,
 });
 
 module.exports = {
@@ -29,19 +29,18 @@ module.exports = {
 
     return artists;
   },
-  update: async function (id, nome, genero, paisOrigem, biografia) {
-    return await ArtistModel.update(
-      { nome: nome },
-      { genero: genero },
-      { paisOrigem: paisOrigem },
-      { biografia: biografia },
-      {
-        where: { id: id },
-      }
-    );
+  update: async function (id, obj) {
+    let artist = await ArtistModel.findByPk(id);
+    if (!artist) {
+      return false;
+    }
+
+    Object.keys(obj).forEach((key) => (artist[key] = obj[key]));
+    await artist.save();
+    return artist;
   },
   delete: async function (id) {
-    //Precisa fazer algo para os livros que este autor possui
+    //Precisa fazer algo para os alnum e msucias que este artista possui
     return await ArtistModel.destroy({ where: { id: id } });
   },
 

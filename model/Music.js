@@ -1,4 +1,4 @@
-const { DataTypes, Op } = require("sequelize");
+const { DataTypes } = require("sequelize");
 const sequelize = require("../helpers/connection");
 const Album = require("./Album");
 const Artist = require("./Artist");

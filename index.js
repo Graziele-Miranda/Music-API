@@ -10,6 +10,7 @@ app.use("/albums", require("./control/AlbumAPI"));
 app.use("/artists", require("./control/ArtistAPI"));
 app.use("/songs", require("./control/MusicAPI"));
 app.use("/install", require("./control/InstallAPI"));
+app.use("/user", require("./control/UserAPI.js"));
 
 app.listen(3000, () => {
   console.log("Listenning...");

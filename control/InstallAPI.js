@@ -5,15 +5,26 @@ const sequelize = require("../helpers/connection");
 const AlbumModel = require("../model/Album");
 const ArtistModel = require("../model/Artist");
 const MusicModel = require("../model/Music");
+const UserModel = require("../model/User");
 
 router.get("/", async (req, res) => {
   await sequelize.sync({ force: true });
+
+  let user1 = await UserModel.save(
+    "grazielemiranda",
+    "Graziele Miranda",
+    "graziele@email.com",
+    "1234",
+    true
+  );
+
+  usuariolista = [user1];
 
   let artista1 = await ArtistModel.save(
     "Black Sabbath",
     "Heavy Metal",
     "Reino Unido",
-    "Black Sabbath é uma lendária banda de rock formada em Birmingham, Reino Unido, na década de 1960. Eles são considerados pioneiros do heavy metal e têm uma influência significativa no gênero."
+    "Black Sabbath é uma icônica banda britânica de heavy metal formada em 1968. Eles são considerados pioneiros do gênero e tiveram um grande impacto na música. Com sua sonoridade pesada e letras sombrias, lançaram álbuns clássicos como 'Black Sabbath', 'Paranoid' e 'Sabbath Bloody Sabbath'. Apesar de mudanças na formação e desafios pessoais, o Black Sabbath deixou um legado duradouro na música e é uma das bandas mais influentes do rock e do heavy metal."
   );
 
   let artista2 = await ArtistModel.save(
@@ -153,6 +164,7 @@ router.get("/", async (req, res) => {
     albums: albunslista,
     artists: artistaslista,
     songs: musicaslista,
+    user: usuariolista,
   });
 });
 
