@@ -17,11 +17,18 @@ const UserModel = sequelize.define("User", {
       },
     },
   },
-  nome: DataTypes.STRING,
-  senha: DataTypes.STRING,
+  nome: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  senha: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   email: {
     type: DataTypes.STRING,
     unique: true,
+    allowNull: false,
   },
   administrador: {
     type: DataTypes.BOOLEAN,
@@ -57,7 +64,14 @@ module.exports = {
     return user;
   },
   delete: async function (id) {
-    return await UserModel.destroy({ where: { id: id } });
+    try {
+      const deletedUser = await UserModel.destroy({
+        where: { id: id, administrador: false },
+      });
+      return deletedUser;
+    } catch (error) {
+      throw error;
+    }
   },
 
   getById: async function (id) {
@@ -68,7 +82,17 @@ module.exports = {
     return await UserModel.findOne({
       where: {
         usuario: {
-          [Op.like]: "%" + usuario + "%",
+          [Op.eq]: usuario,
+        },
+      },
+    });
+  },
+
+  getByEmail: async function (email) {
+    return await UserModel.findOne({
+      where: {
+        email: {
+          [Op.eq]: email,
         },
       },
     });

@@ -4,3 +4,4 @@ DB_NAME=music
 DB_PORT=5432
 DB_USER=user
 DB_PASSWORD=password
+JWT_SECRET = "YzTrsdE"

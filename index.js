@@ -13,5 +13,5 @@ app.use("/install", require("./control/InstallAPI"));
 app.use("/user", require("./control/UserAPI.js"));
 
 app.listen(3000, () => {
-  console.log("Listenning...");
+  console.log("Port 3000");
 });
