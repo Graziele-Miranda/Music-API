@@ -6,9 +6,16 @@ const AlbumDAO = require("../model/Album");
 
 const { authenticateToken } = require("../helpers/auth");
 
-router.get("/list", async (req, res) => {
-  let albums = await AlbumDAO.list();
-  res.json(sucess(albums, "list"));
+router.get("/", async (req, res) => {
+  const limite = parseInt(req.query.limit) || 10;
+  const pagina = parseInt(req.query.page) || 1;
+
+  try {
+    const albums = await AlbumDAO.list(limite, pagina);
+    res.json(sucess(albums, "list"));
+  } catch (error) {
+    res.status(500).json(fail("Erro ao obter listagem de álbuns."));
+  }
 });
 
 router.get("/:id", async (req, res) => {
@@ -113,10 +120,16 @@ router.delete("/delete-album/:id", authenticateToken, async (req, res) => {
 //Logica de negocio
 router.get("/recommendations/:genero", authenticateToken, async (req, res) => {
   const genero = req.params.genero;
+  const limite = parseInt(req.query.limit) || 5;
+  const pagina = parseInt(req.query.page) || 1;
 
   try {
-    // Recomendar álbuns com base no gênero
-    const recommendedAlbums = await AlbumDAO.getAlbumsByGenre(genero);
+    // Recomendar álbuns com base no gênero, com paginação
+    const recommendedAlbums = await AlbumDAO.getAlbumsByGenre(
+      genero,
+      limite,
+      pagina
+    );
 
     // Verificar se há recomendações
     if (recommendedAlbums.length === 0) {

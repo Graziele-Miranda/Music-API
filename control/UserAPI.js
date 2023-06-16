@@ -3,15 +3,21 @@ const router = express.Router();
 const { sucess, fail } = require("../helpers/resposta");
 const UserDAO = require("../model/User");
 const { authenticateToken } = require("../helpers/auth");
-
 const jwt = require("jsonwebtoken");
 
 //listar todos users
+//inserir nos parametros, ex: limit = 10, page=2
 router.get("/", async (req, res) => {
-  let users = await UserDAO.list();
-  res.json(sucess(users, "list"));
-});
+  const limite = parseInt(req.query.limit) || 5;
+  const pagina = parseInt(req.query.page) || 1;
 
+  try {
+    const users = await UserDAO.list(limite, pagina);
+    res.json(sucess(users, "list"));
+  } catch (error) {
+    res.status(500).json(fail("Erro ao obter listagem de usuários."));
+  }
+});
 // Rota de login e geração de token JWT
 router.post("/login", async (req, res) => {
   const { usuario, senha } = req.body;

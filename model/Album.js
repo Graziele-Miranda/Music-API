@@ -28,11 +28,16 @@ AlbumModel.belongsTo(Artist.Model, {
 Artist.Model.hasMany(AlbumModel, { foreignKey: "artista" });
 
 module.exports = {
-  list: async function () {
-    const albums = await AlbumModel.findAll({ include: Artist.Model });
+  list: async function (limite, pagina) {
+    const offset = (pagina - 1) * limite;
+    const albums = await AlbumModel.findAll({
+      include: Artist.Model,
+      limit: limite,
+      offset: offset,
+      order: [["id", "ASC"]],
+    });
     return albums;
   },
-
   save: async function (titulo, artista, ano, genero) {
     if (artista instanceof Artist.Model) {
       artista = artista.id;
@@ -84,7 +89,8 @@ module.exports = {
     });
   },
 
-  getAlbumsByGenre: async function (genero) {
+  getAlbumsByGenre: async function (genero, limite, pagina) {
+    const offset = (pagina - 1) * limite;
     return await AlbumModel.findAll({
       include: Artist.Model,
       where: {
@@ -92,6 +98,9 @@ module.exports = {
           [Op.like]: "%" + genero + "%",
         },
       },
+      limit: limite,
+      offset: offset,
+      order: [["id", "ASC"]],
     });
   },
 

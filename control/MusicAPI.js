@@ -7,8 +7,15 @@ const MusicDAO = require("../model/Music");
 const { authenticateToken } = require("../helpers/auth");
 
 router.get("/", async (req, res) => {
-  let musics = await MusicDAO.list();
-  res.json(sucess(musics, "list"));
+  const limite = parseInt(req.query.limit) || 5;
+  const pagina = parseInt(req.query.page) || 1;
+
+  try {
+    const musics = await MusicDAO.list(limite, pagina);
+    res.json(sucess(musics, "list"));
+  } catch (error) {
+    res.status(500).json(fail("Erro ao obter listagem de músicas."));
+  }
 });
 
 router.get("/:id", async (req, res) => {

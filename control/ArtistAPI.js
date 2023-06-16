@@ -7,8 +7,15 @@ const ArtistDAO = require("../model/Artist");
 const { authenticateToken } = require("../helpers/auth");
 
 router.get("/", async (req, res) => {
-  let artist = await ArtistDAO.list();
-  res.json(sucess(artist, "list"));
+  const limite = parseInt(req.query.limit) || 5;
+  const pagina = parseInt(req.query.page) || 1;
+
+  try {
+    const artist = await ArtistDAO.list(limite, pagina);
+    res.json(sucess(artist, "list"));
+  } catch (error) {
+    res.status(500).json(fail("Erro ao obter listagem de artistas."));
+  }
 });
 
 router.get("/:id", async (req, res) => {
@@ -34,10 +41,10 @@ router.post("/create-artist", authenticateToken, async (req, res) => {
     }
 
     let artistCad = await ArtistDAO.save(nome, genero, paisOrigem, biografia);
-    res.json(sucess({ message: "Album cadastrado com sucesso", artistCad }));
+    res.json(sucess({ message: "Artista cadastrado com sucesso", artistCad }));
   } catch (error) {
     console.error(error);
-    res.status(500).json(fail("Erro ao cadastrar álbum"));
+    res.status(500).json(fail("Erro ao cadastrar artista"));
   }
 });
 

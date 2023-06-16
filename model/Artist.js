@@ -21,9 +21,14 @@ const ArtistModel = sequelize.define("Artist", {
 });
 
 module.exports = {
-  list: async function () {
-    const artists = await ArtistModel.findAll();
-    return artists;
+  list: async function (limite, pagina) {
+    const offset = (pagina - 1) * limite;
+    const artist = await ArtistModel.findAll({
+      limit: limite,
+      offset: offset,
+      order: [["id", "ASC"]],
+    });
+    return artist;
   },
   //Colunas: ID, Nome, Gênero, País de origem, Biografia.
   save: async function (nome, genero, paisOrigem, biografia) {

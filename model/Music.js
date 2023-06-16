@@ -28,9 +28,13 @@ MusicModel.belongsTo(Album.Model, {
 Album.Model.hasMany(MusicModel, { foreignKey: "album" });
 
 module.exports = {
-  list: async function () {
+  list: async function (limite, pagina) {
+    const offset = (pagina - 1) * limite;
     const songs = await MusicModel.findAll({
       include: [Artist.Model, Album.Model],
+      limit: limite,
+      offset: offset,
+      order: [["id", "ASC"]],
     });
     return songs;
   },
@@ -40,14 +44,16 @@ module.exports = {
       artista = artista.id;
       album = album.id;
     } else if (typeof artista === "string" && typeof album == "string") {
-      obj = await Artist.getByName(artista);
-      obj = await Album.getByName(album);
-      console.log(obj);
-      if (!obj) {
-        return null;
+      const existingArtist = await Artist.getById(artista);
+
+      const existingAlbum = await Album.getById(album);
+
+      if (!existingArtist || !existingAlbum) {
+        throw new Error("Artista ou álbum não encontrados");
       }
-      artista = obj.id;
-      album = obj.id;
+
+      artista = existingArtist.id;
+      album = existingAlbum.id;
     }
 
     const music = await MusicModel.create({
@@ -71,8 +77,7 @@ module.exports = {
   },
 
   delete: async function (id) {
-    const music = await MusicModel.findByPk(id);
-    return music.destroy();
+    return await MusicModel.destroy({ where: { id: id } });
   },
 
   getById: async function (id) {

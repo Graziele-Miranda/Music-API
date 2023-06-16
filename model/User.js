@@ -32,11 +32,15 @@ const UserModel = sequelize.define("User", {
 });
 
 module.exports = {
-  list: async function () {
-    const usuario = await UserModel.findAll();
-    return usuario;
+  list: async function (limite, pagina) {
+    const offset = (pagina - 1) * limite;
+    const user = await UserModel.findAll({
+      limit: limite,
+      offset: offset,
+      order: [["id", "ASC"]],
+    });
+    return user;
   },
-
   save: async function (usuario, nome, email, senha, administrador) {
     const user = await UserModel.create({
       usuario: usuario,
