@@ -11,11 +11,6 @@ const UserModel = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
-    validate: {
-      notNull: {
-        msg: "É necessário preencher o campo",
-      },
-    },
   },
   nome: {
     type: DataTypes.STRING,

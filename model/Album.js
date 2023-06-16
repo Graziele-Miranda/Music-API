@@ -8,9 +8,18 @@ const AlbumModel = sequelize.define("Album", {
     autoIncrement: true,
     primaryKey: true,
   },
-  titulo: DataTypes.STRING,
-  ano: DataTypes.INTEGER,
-  genero: DataTypes.STRING,
+  titulo: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  ano: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  genero: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
 });
 
 AlbumModel.belongsTo(Artist.Model, {
@@ -69,7 +78,18 @@ module.exports = {
     return await AlbumModel.findOne({
       where: {
         titulo: {
-          [Op.like]: "%" + titulo + "%",
+          [Op.eq]: titulo,
+        },
+      },
+    });
+  },
+
+  getAlbumsByGenre: async function (genero) {
+    return await AlbumModel.findAll({
+      include: Artist.Model,
+      where: {
+        genero: {
+          [Op.like]: "%" + genero + "%",
         },
       },
     });

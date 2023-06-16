@@ -4,74 +4,103 @@ const router = express.Router();
 const { sucess, fail } = require("../helpers/resposta");
 const ArtistDAO = require("../model/Artist");
 
-router.get("/", (req, res) => {
-  ArtistDAO.list().then((artists) => {
-    res.json(sucess(artists, "list"));
-  });
+const { authenticateToken } = require("../helpers/auth");
+
+router.get("/", async (req, res) => {
+  let artist = await ArtistDAO.list();
+  res.json(sucess(artist, "list"));
 });
 
-router.get("/:id", (req, res) => {
-  ArtistDAO.getById(req.params.id)
-    .then((artist) => {
-      res.json(sucess(artist));
-    })
-    .catch((err) => {
-      consol.elog(err);
-      res.status(500).json(fail("Não foi possível localizar o artista"));
-    });
+router.get("/:id", async (req, res) => {
+  let obj = await ArtistDAO.getById(req.params.id);
+  if (obj) res.json(sucess(obj));
+  else res.status(500).json(fail("Não foi possível localizar o artista"));
 });
 // ID, Nome, Gênero, País de origem, Biografia.
-router.post("/", (req, res) => {
+router.post("/create-artist", authenticateToken, async (req, res) => {
   const { nome, genero, paisOrigem, biografia } = req.body;
 
-  //TODO validar os campos
+  if (!nome) {
+    return res.status(400).json(fail("O campo nome deve ser preenchido"));
+  }
+  if (!genero) {
+    return res.status(400).json(fail("O campo genero deve ser preenchido"));
+  }
 
-  ArtistDAO.save(nome, genero, paisOrigem, biografia)
-    .then((artist) => {
-      res.json(sucess(artist));
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json(fail("Falha ao salvar o novo artista"));
-    });
+  try {
+    const existingArtist = await ArtistDAO.getByName(nome);
+    if (existingArtist) {
+      return res.status(400).json(fail("Artista já cadastrado"));
+    }
+
+    let artistCad = await ArtistDAO.save(nome, genero, paisOrigem, biografia);
+    res.json(sucess({ message: "Album cadastrado com sucesso", artistCad }));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(fail("Erro ao cadastrar álbum"));
+  }
 });
 
-router.put("/:id", (req, res) => {
+router.put("/update-artist/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { nome, genero, paisOrigem, biografia } = req.body;
 
-  //TODO validar os campos
-  let obj = {};
-  if (nome) obj.nome = nome;
-  if (genero) obj.genero = genero;
-  if (paisOrigem) obj.paisOrigem = paisOrigem;
-  if (biografia) obj.biografia = biografia;
-
-  if (obj == {}) {
-    return res.status(500).json(fail("Nenhum atributo foi modificado"));
+  if (!nome) {
+    return res.status(400).json(fail("O campo nome deve ser preenchido"));
+  }
+  if (!genero) {
+    return res.status(400).json(fail("O campo genero deve ser preenchido"));
   }
 
-  ArtistDAO.update(id, obj)
-    .then((artist) => {
-      if (artist) res.json(sucess(artist));
-      else res.status(500).json(fail("Artista não encontrado"));
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json(fail("Falha ao alterar artista"));
-    });
+  try {
+    const artist = await ArtistDAO.getById(id);
+
+    if (!artist) {
+      return res.status(404).json(fail({ message: "Artista não encontrado" }));
+    }
+
+    if (nome !== artist.nome) {
+      const existingArtist = await ArtistDAO.getByName(nome);
+      if (existingArtist && existingArtist.id !== artist.id) {
+        return res
+          .status(400)
+          .json(fail({ message: "O nome do artista já está em uso" }));
+      }
+    }
+
+    artist.nome = nome;
+    artist.genero = genero;
+    artist.paisOrigem = paisOrigem;
+    artist.biografia = biografia;
+
+    await artist.save();
+    res.json(
+      sucess({ message: "Dados do artista atualizados com sucesso", artist })
+    );
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json(fail({ message: "Erro ao atualizar dados do artista" }));
+  }
 });
 
-router.delete("/:id", (req, res) => {
-  ArtistDAO.delete(req.params.id)
-    .then((artist) => {
-      if (artist) res.json(sucess(artist));
-      else res.status(500).json(fail("Artista não encontrado"));
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(500).json(fail("Falha ao excluir o artista"));
-    });
+router.delete("/delete-artist/:id", authenticateToken, async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const artist = await ArtistDAO.getById(id);
+
+    if (!artist) {
+      return res.status(404).json(fail({ message: "Artista não encontrado" }));
+    }
+
+    await ArtistDAO.delete(id);
+    res.json(sucess({ message: "Artista excluído com sucesso" }));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(fail({ message: "Erro ao excluir artista" }));
+  }
 });
 
 module.exports = router;

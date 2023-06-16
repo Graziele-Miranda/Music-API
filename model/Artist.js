@@ -1,4 +1,4 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, Op } = require("sequelize");
 const sequelize = require("../helpers/connection");
 
 const ArtistModel = sequelize.define("Artist", {
@@ -7,8 +7,15 @@ const ArtistModel = sequelize.define("Artist", {
     autoIncrement: true,
     primaryKey: true,
   },
-  nome: DataTypes.STRING,
-  genero: DataTypes.STRING,
+  nome: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  genero: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
   paisOrigem: DataTypes.STRING,
   biografia: DataTypes.TEXT,
 });
@@ -40,7 +47,6 @@ module.exports = {
     return artist;
   },
   delete: async function (id) {
-    //Precisa fazer algo para os alnum e msucias que este artista possui
     return await ArtistModel.destroy({ where: { id: id } });
   },
 
@@ -52,7 +58,7 @@ module.exports = {
     return await ArtistModel.findOne({
       where: {
         nome: {
-          [Op.like]: "%" + nome + "%",
+          [Op.eq]: nome,
         },
       },
     });

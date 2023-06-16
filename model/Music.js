@@ -1,4 +1,4 @@
-const { DataTypes } = require("sequelize");
+const { DataTypes, Op } = require("sequelize");
 const sequelize = require("../helpers/connection");
 const Album = require("./Album");
 const Artist = require("./Artist");
@@ -9,7 +9,11 @@ const MusicModel = sequelize.define("Music", {
     autoIncrement: true,
     primaryKey: true,
   },
-  titulo: DataTypes.STRING,
+  titulo: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
   duracao: DataTypes.STRING,
 });
 
@@ -30,7 +34,7 @@ module.exports = {
     });
     return songs;
   },
-  //titulo, artista, album, duracao
+
   save: async function (titulo, artista, album, duracao) {
     if (artista instanceof Artist.Model && album instanceof Album.Model) {
       artista = artista.id;
@@ -79,7 +83,7 @@ module.exports = {
     return await MusicModel.findOne({
       where: {
         titulo: {
-          [Op.like]: "%" + titulo + "%",
+          [Op.eq]: titulo,
         },
       },
     });

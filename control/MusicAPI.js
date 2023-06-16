@@ -4,6 +4,8 @@ const router = express.Router();
 const { sucess, fail } = require("../helpers/resposta");
 const MusicDAO = require("../model/Music");
 
+const { authenticateToken } = require("../helpers/auth");
+
 router.get("/", async (req, res) => {
   let musics = await MusicDAO.list();
   res.json(sucess(musics, "list"));
@@ -15,31 +17,82 @@ router.get("/:id", async (req, res) => {
   else res.status(500).json(fail("Não foi possível localizar a musica"));
 });
 
-router.post("/", async (req, res) => {
+router.post("/create-music", authenticateToken, async (req, res) => {
   const { titulo, artista, album, duracao } = req.body;
-  //TODO validar os campos
 
-  let obj = await MusicDAO.save(titulo, artista, album, duracao);
-  if (obj) res.json(sucess(obj));
-  else res.status(500).json(fail("Falha ao salvar a nova msuica"));
+  if (!titulo) {
+    return res.status(400).json(fail("O campo titulo deve ser preenchido"));
+  }
+  try {
+    const existingMusic = await MusicDAO.getByName(titulo);
+    if (existingMusic) {
+      return res.status(400).json(fail("Música já cadastrada"));
+    }
+
+    let musicCad = await MusicDAO.save(titulo, artista, album, duracao);
+    res.json(sucess({ message: "Musica cadastrada com sucesso", musicCad }));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(fail("Erro ao cadastrar musica"));
+  }
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/update-music/:id", authenticateToken, async (req, res) => {
   const { id } = req.params;
   const { titulo, artista, album, duracao } = req.body;
 
-  //TODO validar os campos
+  if (!titulo) {
+    return res.status(400).json(fail("O campo titulo deve ser preenchido"));
+  }
+  try {
+    const music = await MusicDAO.getById(id);
 
-  let [result] = await MusicDAO.update(id, titulo, artista, album, duracao);
-  console.log(result);
-  if (result) res.json(sucess(result));
-  else res.status(500).json(fail("Falha ao alterar o musica"));
+    if (!music) {
+      return res.status(404).json(fail({ message: "Música não encontrada" }));
+    }
+
+    if (titulo !== music.titulo) {
+      const existingMusic = await MusicDAO.getByName(titulo);
+      if (existingMusic && existingMusic.id !== music.id) {
+        return res
+          .status(400)
+          .json(fail({ message: "O nome do título da música já está em uso" }));
+      }
+    }
+
+    music.titulo = titulo;
+    music.artista = artista;
+    music.album = album;
+    music.duracao = duracao;
+
+    await music.save();
+    res.json(
+      sucess({
+        message: "Dados da música foram atualizados com sucesso",
+        music,
+      })
+    );
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json(fail({ message: "Erro ao atualizar dados da música" }));
+  }
 });
+router.delete("/delete-music/:id", authenticateToken, async (req, res) => {
+  const id = req.params.id;
+  try {
+    const music = await MusicDAO.getById(id);
 
-router.delete("/:id", async (req, res) => {
-  let result = await MusicDAO.delete(req.params.id);
-  if (result) res.json(sucess(result));
-  else res.status(500).json(fail("Musica não encontrada"));
+    if (!music) {
+      return res.status(404).json(fail({ message: "Música não encontrada" }));
+    }
+    await MusicDAO.delete(id);
+    res.json(sucess({ message: "Música excluída com sucesso" }));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(fail({ message: "Erro ao excluir música" }));
+  }
 });
 
 module.exports = router;
