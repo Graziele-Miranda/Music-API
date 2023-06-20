@@ -25,13 +25,11 @@ Artist.Model.hasMany(MusicModel, {
   foreignKey: "artista",
   onDelete: "CASCADE",
 });
-
 MusicModel.belongsTo(Album.Model, {
   foreignKey: "album",
   onDelete: "CASCADE",
 });
 Album.Model.hasMany(MusicModel, { foreignKey: "album", onDelete: "CASCADE" });
-
 module.exports = {
   list: async function (limite, pagina) {
     const offset = (pagina - 1) * limite;
@@ -87,6 +85,15 @@ module.exports = {
 
   getById: async function (id) {
     return await MusicModel.findByPk(id);
+  },
+
+  getAlbumMusic: async function (id) {
+    return await MusicModel.findAll({
+      where: {
+        album: id,
+      },
+      include: [Artist.Model, Album.Model],
+    });
   },
 
   getByName: async function (titulo) {

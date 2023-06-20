@@ -94,6 +94,7 @@ module.exports = {
   },
 
   getAlbumsByGenre: async function (genero, limite, pagina) {
+    console.log(getAlbumsByGenre);
     const offset = (pagina - 1) * limite;
     return await AlbumModel.findAll({
       include: Artist.Model,
@@ -108,5 +109,22 @@ module.exports = {
     });
   },
 
+  getAlbumsByDecade: async function (decada, limite, pagina) {
+    const offset = (pagina - 1) * limite;
+    const startYear = decada;
+    const endYear = decada + 9;
+
+    return await AlbumModel.findAll({
+      include: Artist.Model,
+      where: {
+        ano: {
+          [Op.between]: [startYear, endYear],
+        },
+      },
+      limit: limite,
+      offset: offset,
+      order: [["id", "ASC"]],
+    });
+  },
   Model: AlbumModel,
 };

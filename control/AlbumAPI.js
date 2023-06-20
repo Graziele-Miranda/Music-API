@@ -179,7 +179,6 @@ router.get("/recommendations/:genero", authenticateToken, async (req, res) => {
       pagina
     );
 
-    // Verificar se há recomendações
     if (recommendedAlbums.length === 0) {
       return res.json(fail("Não há recomendações para esse gênero"));
     }
@@ -188,6 +187,29 @@ router.get("/recommendations/:genero", authenticateToken, async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json(fail("Falha ao recomendar álbuns"));
+  }
+});
+
+router.get("/decades/:decada", authenticateToken, async (req, res) => {
+  const decada = parseInt(req.params.decada);
+  const limite = parseInt(req.query.limit) || 5;
+  const pagina = parseInt(req.query.page) || 1;
+
+  try {
+    const albumsDecade = await AlbumDAO.getAlbumsByDecade(
+      decada,
+      limite,
+      pagina
+    );
+
+    if (albumsDecade.length === 0) {
+      return res.json(fail("Não há álbuns para essa década"));
+    }
+
+    res.json(sucess(albumsDecade, "decades"));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(fail("Erro ao obter listagem de álbuns por décadas."));
   }
 });
 

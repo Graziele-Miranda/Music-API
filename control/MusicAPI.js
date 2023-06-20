@@ -24,6 +24,18 @@ router.get("/:id", async (req, res) => {
   else res.status(500).json(fail("Não foi possível localizar a musica"));
 });
 
+router.get("/:id/albums", async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const albums = await MusicDAO.getAlbumMusic(id);
+    res.json(sucess(albums, "albums"));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json(fail("Erro ao obter as músicas do álbum"));
+  }
+});
+
 router.post(
   "/create-music",
   authenticateToken,
