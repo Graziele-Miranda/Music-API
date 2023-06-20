@@ -24,98 +24,146 @@ router.get("/:id", async (req, res) => {
   else res.status(500).json(fail("Não foi possível localizar o album"));
 });
 
-router.post("/create-album", authenticateToken, async (req, res) => {
-  const { titulo, artista, ano, genero } = req.body;
+router.post(
+  "/create-album",
+  authenticateToken,
+  (req, res, next) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json(
+        fail({
+          message: "Acesso negado, somente administradores podem criar álbuns.",
+        })
+      );
+    }
+    next();
+  },
+  async (req, res) => {
+    const { titulo, artista, ano, genero } = req.body;
 
-  if (!titulo) {
-    return res.status(400).json(fail("O campo titulo deve ser preenchido"));
-  }
-  if (!artista) {
-    return res.status(400).json(fail("O campo artista deve ser preenchido"));
-  }
-  if (!ano) {
-    return res.status(400).json(fail("O campo ano deve ser preenchido"));
-  }
-  if (!genero) {
-    return res.status(400).json(fail("O campo genero deve ser preenchido"));
-  }
-
-  try {
-    const existingAlbum = await AlbumDAO.getByName(titulo);
-    if (existingAlbum) {
-      return res.status(400).json(fail("Titulo de álbum já cadastrado"));
+    if (!titulo) {
+      return res.status(400).json(fail("O campo título deve ser preenchido"));
+    }
+    if (!artista) {
+      return res.status(400).json(fail("O campo artista deve ser preenchido"));
+    }
+    if (!ano) {
+      return res.status(400).json(fail("O campo ano deve ser preenchido"));
+    }
+    if (!genero) {
+      return res.status(400).json(fail("O campo gênero deve ser preenchido"));
     }
 
-    let albumCad = await AlbumDAO.save(titulo, artista, ano, genero);
-    res.json(sucess({ message: "Album cadastrado com sucesso", albumCad }));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json(fail("Erro ao cadastrar álbum"));
-  }
-});
-
-router.put("/update-album/:id", async (req, res) => {
-  const { id } = req.params;
-  const { titulo, artista, ano, genero } = req.body;
-
-  if (!titulo) {
-    return res.status(400).json(fail("O campo titulo deve ser preenchido"));
-  }
-  if (!artista) {
-    return res.status(400).json(fail("O campo artista deve ser preenchido"));
-  }
-  if (!ano) {
-    return res.status(400).json(fail("O campo ano deve ser preenchido"));
-  }
-  if (!genero) {
-    return res.status(400).json(fail("O campo genero deve ser preenchido"));
-  }
-
-  try {
-    const album = await AlbumDAO.getById(id);
-
-    if (!album) {
-      return res.status(404).json(fail({ message: "Albúm não encontrado" }));
-    }
-
-    if (titulo !== album.titulo) {
+    try {
       const existingAlbum = await AlbumDAO.getByName(titulo);
-      if (existingAlbum && existingAlbum.id !== album.id) {
-        return res
-          .status(400)
-          .json(fail({ message: "O nome do título do album já está em uso" }));
+      if (existingAlbum) {
+        return res.status(400).json(fail("Título de álbum já cadastrado"));
       }
+
+      let albumCad = await AlbumDAO.save(titulo, artista, ano, genero);
+      res.json(sucess({ message: "Álbum cadastrado com sucesso", albumCad }));
+    } catch (error) {
+      console.error(error);
+      res.status(500).json(fail("Erro ao cadastrar álbum"));
     }
-    album.titulo = titulo;
-    album.artista = artista;
-    album.ano = ano;
-    album.genero = genero;
-
-    await album.save();
-    res.json(
-      sucess({ message: "Dados do album atualizados com sucesso", album })
-    );
-  } catch (error) {
-    console.error(error);
-    res.status(500).json(fail({ message: "Erro ao atualizar dados do album" }));
   }
-});
+);
 
-router.delete("/delete-album/:id", authenticateToken, async (req, res) => {
-  const id = req.params.id;
-  try {
-    const album = await AlbumDAO.getById(id);
-
-    if (!album) {
-      return res.status(404).json(fail({ message: "Album não encontrado" }));
+router.put(
+  "/update-album/:id",
+  authenticateToken,
+  (req, res, next) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json(
+        fail({
+          message:
+            "Acesso negado, somente administradores podem atualizar álbuns.",
+        })
+      );
     }
-    await AlbumDAO.delete(id);
-    res.json(sucess({ message: "Album excluído com sucesso" }));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json(fail({ message: "Erro ao excluir album" }));
+    next();
+  },
+  async (req, res) => {
+    const { id } = req.params;
+    const { titulo, artista, ano, genero } = req.body;
+
+    if (!titulo) {
+      return res.status(400).json(fail("O campo titulo deve ser preenchido"));
+    }
+    if (!artista) {
+      return res.status(400).json(fail("O campo artista deve ser preenchido"));
+    }
+    if (!ano) {
+      return res.status(400).json(fail("O campo ano deve ser preenchido"));
+    }
+    if (!genero) {
+      return res.status(400).json(fail("O campo genero deve ser preenchido"));
+    }
+
+    try {
+      const album = await AlbumDAO.getById(id);
+
+      if (!album) {
+        return res.status(404).json(fail({ message: "Albúm não encontrado" }));
+      }
+
+      if (titulo !== album.titulo) {
+        const existingAlbum = await AlbumDAO.getByName(titulo);
+        if (existingAlbum && existingAlbum.id !== album.id) {
+          return res
+            .status(400)
+            .json(
+              fail({ message: "O nome do título do album já está em uso" })
+            );
+        }
+      }
+      album.titulo = titulo;
+      album.artista = artista;
+      album.ano = ano;
+      album.genero = genero;
+
+      await album.save();
+      res.json(
+        sucess({ message: "Dados do album atualizados com sucesso", album })
+      );
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .json(fail({ message: "Erro ao atualizar dados do album" }));
+    }
   }
-});
+);
+
+router.delete(
+  "/delete-album/:id",
+  authenticateToken,
+  (req, res, next) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json(
+        fail({
+          message:
+            "Acesso negado, somente administradores podem excluir álbuns.",
+        })
+      );
+    }
+    next();
+  },
+  async (req, res) => {
+    const { id } = req.params;
+    try {
+      const album = await AlbumDAO.getById(id);
+
+      if (!album) {
+        return res.status(404).json(fail({ message: "Album não encontrado" }));
+      }
+      await AlbumDAO.delete(id);
+      res.json(sucess({ message: "Album excluído com sucesso" }));
+    } catch (error) {
+      console.error(error);
+      res.status(500).json(fail({ message: "Erro ao excluir album" }));
+    }
+  }
+);
 
 //Logica de negocio
 router.get("/recommendations/:genero", authenticateToken, async (req, res) => {

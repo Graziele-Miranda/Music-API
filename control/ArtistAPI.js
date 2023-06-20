@@ -24,90 +24,142 @@ router.get("/:id", async (req, res) => {
   else res.status(500).json(fail("Não foi possível localizar o artista"));
 });
 // ID, Nome, Gênero, País de origem, Biografia.
-router.post("/create-artist", authenticateToken, async (req, res) => {
-  const { nome, genero, paisOrigem, biografia } = req.body;
 
-  if (!nome) {
-    return res.status(400).json(fail("O campo nome deve ser preenchido"));
-  }
-  if (!genero) {
-    return res.status(400).json(fail("O campo genero deve ser preenchido"));
-  }
+router.post(
+  "/create-artist",
+  authenticateToken,
+  (req, res, next) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json(
+        fail({
+          message:
+            "Acesso negado, somente administradores podem criar artistas.",
+        })
+      );
+    }
+    next();
+  },
+  async (req, res) => {
+    const { nome, genero, paisOrigem, biografia } = req.body;
 
-  try {
-    const existingArtist = await ArtistDAO.getByName(nome);
-    if (existingArtist) {
-      return res.status(400).json(fail("Artista já cadastrado"));
+    if (!nome) {
+      return res.status(400).json(fail("O campo nome deve ser preenchido"));
+    }
+    if (!genero) {
+      return res.status(400).json(fail("O campo genero deve ser preenchido"));
     }
 
-    let artistCad = await ArtistDAO.save(nome, genero, paisOrigem, biografia);
-    res.json(sucess({ message: "Artista cadastrado com sucesso", artistCad }));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json(fail("Erro ao cadastrar artista"));
-  }
-});
-
-router.put("/update-artist/:id", authenticateToken, async (req, res) => {
-  const { id } = req.params;
-  const { nome, genero, paisOrigem, biografia } = req.body;
-
-  if (!nome) {
-    return res.status(400).json(fail("O campo nome deve ser preenchido"));
-  }
-  if (!genero) {
-    return res.status(400).json(fail("O campo genero deve ser preenchido"));
-  }
-
-  try {
-    const artist = await ArtistDAO.getById(id);
-
-    if (!artist) {
-      return res.status(404).json(fail({ message: "Artista não encontrado" }));
-    }
-
-    if (nome !== artist.nome) {
+    try {
       const existingArtist = await ArtistDAO.getByName(nome);
-      if (existingArtist && existingArtist.id !== artist.id) {
-        return res
-          .status(400)
-          .json(fail({ message: "O nome do artista já está em uso" }));
+      if (existingArtist) {
+        return res.status(400).json(fail("Artista já cadastrado"));
       }
+
+      let artistCad = await ArtistDAO.save(nome, genero, paisOrigem, biografia);
+      res.json(
+        sucess({ message: "Artista cadastrado com sucesso", artistCad })
+      );
+    } catch (error) {
+      console.error(error);
+      res.status(500).json(fail("Erro ao cadastrar artista"));
+    }
+  }
+);
+
+router.put(
+  "/update-artist/:id",
+  authenticateToken,
+  (req, res, next) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json(
+        fail({
+          message:
+            "Acesso negado, somente administradores podem alterar artistas.",
+        })
+      );
+    }
+    next();
+  },
+  async (req, res) => {
+    const { id } = req.params;
+    const { nome, genero, paisOrigem, biografia } = req.body;
+
+    if (!nome) {
+      return res.status(400).json(fail("O campo nome deve ser preenchido"));
+    }
+    if (!genero) {
+      return res.status(400).json(fail("O campo genero deve ser preenchido"));
     }
 
-    artist.nome = nome;
-    artist.genero = genero;
-    artist.paisOrigem = paisOrigem;
-    artist.biografia = biografia;
+    try {
+      const artist = await ArtistDAO.getById(id);
 
-    await artist.save();
-    res.json(
-      sucess({ message: "Dados do artista atualizados com sucesso", artist })
-    );
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json(fail({ message: "Erro ao atualizar dados do artista" }));
-  }
-});
+      if (!artist) {
+        return res
+          .status(404)
+          .json(fail({ message: "Artista não encontrado" }));
+      }
 
-router.delete("/delete-artist/:id", authenticateToken, async (req, res) => {
-  const id = req.params.id;
+      if (nome !== artist.nome) {
+        const existingArtist = await ArtistDAO.getByName(nome);
+        if (existingArtist && existingArtist.id !== artist.id) {
+          return res
+            .status(400)
+            .json(fail({ message: "O nome do artista já está em uso" }));
+        }
+      }
 
-  try {
-    const artist = await ArtistDAO.getById(id);
+      artist.nome = nome;
+      artist.genero = genero;
+      artist.paisOrigem = paisOrigem;
+      artist.biografia = biografia;
 
-    if (!artist) {
-      return res.status(404).json(fail({ message: "Artista não encontrado" }));
+      await artist.save();
+      res.json(
+        sucess({ message: "Dados do artista atualizados com sucesso", artist })
+      );
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .json(fail({ message: "Erro ao atualizar dados do artista" }));
     }
-
-    await ArtistDAO.delete(id);
-    res.json(sucess({ message: "Artista excluído com sucesso" }));
-  } catch (error) {
-    console.error(error);
-    res.status(500).json(fail({ message: "Erro ao excluir artista" }));
   }
-});
+);
+
+router.delete(
+  "/delete-artist/:id",
+  authenticateToken,
+  (req, res, next) => {
+    if (!req.user.isAdmin) {
+      return res.status(403).json(
+        fail({
+          message:
+            "Acesso negado, somente administradores podem excluir artistas.",
+        })
+      );
+    }
+    next();
+  },
+  async (req, res) => {
+    const id = req.params.id;
+
+    try {
+      const artist = await ArtistDAO.getById(id);
+
+      if (!artist) {
+        return res
+          .status(404)
+          .json(fail({ message: "Artista não encontrado" }));
+      }
+
+      await ArtistDAO.delete(id);
+      res.json(sucess({ message: "Artista excluído com sucesso" }));
+    } catch (error) {
+      console.error(error);
+      res.status(500).json(fail({ message: "Erro ao excluir artista" }));
+    }
+  }
+);
 
 module.exports = router;
