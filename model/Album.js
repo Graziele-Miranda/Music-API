@@ -24,8 +24,12 @@ const AlbumModel = sequelize.define("Album", {
 
 AlbumModel.belongsTo(Artist.Model, {
   foreignKey: "artista",
+  onDelete: "CASCADE",
 });
-Artist.Model.hasMany(AlbumModel, { foreignKey: "artista" });
+Artist.Model.hasMany(AlbumModel, {
+  foreignKey: "artista",
+  onDelete: "CASCADE",
+});
 
 module.exports = {
   list: async function (limite, pagina) {

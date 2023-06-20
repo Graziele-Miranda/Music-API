@@ -19,13 +19,18 @@ const MusicModel = sequelize.define("Music", {
 
 MusicModel.belongsTo(Artist.Model, {
   foreignKey: "artista",
+  onDelete: "CASCADE",
 });
-Artist.Model.hasMany(MusicModel, { foreignKey: "artista" });
+Artist.Model.hasMany(MusicModel, {
+  foreignKey: "artista",
+  onDelete: "CASCADE",
+});
 
 MusicModel.belongsTo(Album.Model, {
   foreignKey: "album",
+  onDelete: "CASCADE",
 });
-Album.Model.hasMany(MusicModel, { foreignKey: "album" });
+Album.Model.hasMany(MusicModel, { foreignKey: "album", onDelete: "CASCADE" });
 
 module.exports = {
   list: async function (limite, pagina) {
@@ -44,9 +49,9 @@ module.exports = {
       artista = artista.id;
       album = album.id;
     } else if (typeof artista === "string" && typeof album == "string") {
-      const existingArtist = await Artist.getById(artista);
+      const existingArtist = await Artist.getById(id);
 
-      const existingAlbum = await Album.getById(album);
+      const existingAlbum = await Album.getById(id);
 
       if (!existingArtist || !existingAlbum) {
         throw new Error("Artista ou álbum não encontrados");
