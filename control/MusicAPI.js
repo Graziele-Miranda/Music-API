@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { sucess, fail } = require("../helpers/resposta");
+const { sucess, fail } = require("../helpers/answer");
 const MusicDAO = require("../model/Music");
+const AlbumDAO = require("../model/Album");
+const ArtistDAO = require("../model/Artist");
 
 const { authenticateToken } = require("../helpers/auth");
 
@@ -23,7 +25,7 @@ router.get("/:id", async (req, res) => {
   if (obj) res.json(sucess(obj));
   else res.status(500).json(fail("Não foi possível localizar a musica"));
 });
-
+//Mostrar lista de músicas de um determinado album
 router.get("/:id/albums", async (req, res) => {
   const id = req.params.id;
 
@@ -60,6 +62,14 @@ router.post(
       const existingMusic = await MusicDAO.getByName(titulo);
       if (existingMusic) {
         return res.status(400).json(fail("Música já cadastrada"));
+      }
+      const existingAlbum = await AlbumDAO.getById(album);
+      if (!existingAlbum) {
+        return res.status(400).json(fail("O ID do álbum não existe"));
+      }
+      const existingArtist = await ArtistDAO.getById(artista);
+      if (!existingArtist) {
+        return res.status(400).json(fail("O ID do artista não existe"));
       }
 
       let musicCad = await MusicDAO.save(titulo, artista, album, duracao);
@@ -109,7 +119,14 @@ router.put(
             );
         }
       }
-
+      const existingAlbum = await AlbumDAO.getById(album);
+      if (!existingAlbum) {
+        return res.status(400).json(fail("O ID do álbum não existe"));
+      }
+      const existingArtist = await ArtistDAO.getById(artista);
+      if (!existingArtist) {
+        return res.status(400).json(fail("O ID do artista não existe"));
+      }
       music.titulo = titulo;
       music.artista = artista;
       music.album = album;

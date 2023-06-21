@@ -1,12 +1,12 @@
 const express = require("express");
 const router = express.Router();
-
-const { sucess, fail } = require("../helpers/resposta");
-const AlbumDAO = require("../model/Album");
-
+const { sucess, fail } = require("../helpers/answer");
 const { authenticateToken } = require("../helpers/auth");
 
-router.get("/", async (req, res) => {
+const AlbumDAO = require("../model/Album");
+const ArtistDAO = require("../model/Artist");
+
+router.get("/list", async (req, res) => {
   const limite = parseInt(req.query.limit) || 10;
   const pagina = parseInt(req.query.page) || 1;
 
@@ -52,11 +52,24 @@ router.post(
     if (!genero) {
       return res.status(400).json(fail("O campo gênero deve ser preenchido"));
     }
-
+    if (titulo.length < 2) {
+      return res
+        .status(400)
+        .json(fail("O campo titulo ter mais de 2 caracteres"));
+    }
+    if (!Number.isInteger(ano)) {
+      return res
+        .status(400)
+        .json(fail("O campo ano deve ser um número inteiro"));
+    }
     try {
       const existingAlbum = await AlbumDAO.getByName(titulo);
       if (existingAlbum) {
         return res.status(400).json(fail("Título de álbum já cadastrado"));
+      }
+      const existingArtist = await ArtistDAO.getById(artista);
+      if (!existingArtist) {
+        return res.status(400).json(fail("O ID do artista não existe"));
       }
 
       let albumCad = await AlbumDAO.save(titulo, artista, ano, genero);
@@ -98,6 +111,16 @@ router.put(
     if (!genero) {
       return res.status(400).json(fail("O campo genero deve ser preenchido"));
     }
+    if (titulo.length < 2) {
+      return res
+        .status(400)
+        .json(fail("O campo titulo ter mais de 2 caracteres"));
+    }
+    if (!Number.isInteger(ano)) {
+      return res
+        .status(400)
+        .json(fail("O campo ano deve ser um número inteiro"));
+    }
 
     try {
       const album = await AlbumDAO.getById(id);
@@ -115,6 +138,10 @@ router.put(
               fail({ message: "O nome do título do album já está em uso" })
             );
         }
+      }
+      const existingArtist = await ArtistDAO.getById(artista);
+      if (!existingArtist) {
+        return res.status(400).json(fail("O ID do artista não existe"));
       }
       album.titulo = titulo;
       album.artista = artista;
@@ -205,7 +232,6 @@ router.get("/decades/:decada", authenticateToken, async (req, res) => {
     if (albumsDecade.length === 0) {
       return res.json(fail("Não há álbuns para essa década"));
     }
-
     res.json(sucess(albumsDecade, "decades"));
   } catch (error) {
     console.error(error);

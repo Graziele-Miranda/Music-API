@@ -24,10 +24,12 @@ const AlbumModel = sequelize.define("Album", {
 
 AlbumModel.belongsTo(Artist.Model, {
   foreignKey: "artista",
+  onUpdate: "CASCADE",
   onDelete: "CASCADE",
 });
 Artist.Model.hasMany(AlbumModel, {
   foreignKey: "artista",
+  onUpdate: "CASCADE",
   onDelete: "CASCADE",
 });
 
@@ -94,7 +96,6 @@ module.exports = {
   },
 
   getAlbumsByGenre: async function (genero, limite, pagina) {
-    console.log(getAlbumsByGenre);
     const offset = (pagina - 1) * limite;
     return await AlbumModel.findAll({
       include: Artist.Model,
@@ -108,7 +109,6 @@ module.exports = {
       order: [["id", "ASC"]],
     });
   },
-
   getAlbumsByDecade: async function (decada, limite, pagina) {
     const offset = (pagina - 1) * limite;
     const startYear = decada;

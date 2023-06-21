@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { sucess, fail } = require("../helpers/resposta");
+const { sucess, fail } = require("../helpers/answer");
 const UserDAO = require("../model/User");
 const { authenticateToken } = require("../helpers/auth");
 const jwt = require("jsonwebtoken");

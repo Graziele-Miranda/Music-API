@@ -19,14 +19,17 @@ const MusicModel = sequelize.define("Music", {
 
 MusicModel.belongsTo(Artist.Model, {
   foreignKey: "artista",
+  onUpdate: "CASCADE",
   onDelete: "CASCADE",
 });
 Artist.Model.hasMany(MusicModel, {
   foreignKey: "artista",
+  onUpdate: "CASCADE",
   onDelete: "CASCADE",
 });
 MusicModel.belongsTo(Album.Model, {
   foreignKey: "album",
+  onUpdate: "CASCADE",
   onDelete: "CASCADE",
 });
 Album.Model.hasMany(MusicModel, { foreignKey: "album", onDelete: "CASCADE" });
