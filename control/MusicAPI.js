@@ -28,10 +28,15 @@ router.get("/:id", async (req, res) => {
 //Mostrar lista de músicas de um determinado album
 router.get("/:id/albums", async (req, res) => {
   const id = req.params.id;
+  const limite = parseInt(req.query.limit) || 5;
+  const pagina = parseInt(req.query.page) || 1;
 
   try {
-    const albums = await MusicDAO.getAlbumMusic(id);
-    res.json(sucess(albums, "albums"));
+    const musicAlbums = await MusicDAO.getAlbumMusic(id, limite, pagina);
+    if (musicAlbums.length === 0) {
+      return res.json(fail("Não há álbuns para essa década"));
+    }
+    res.json(sucess(musicAlbums, "albums"));
   } catch (error) {
     console.error(error);
     res.status(500).json(fail("Erro ao obter as músicas do álbum"));
@@ -76,6 +81,10 @@ router.post(
       res.json(sucess({ message: "Musica cadastrada com sucesso", musicCad }));
     } catch (error) {
       console.error(error);
+      if (error.errors && error.errors[0].validatorKey === "len") {
+        const errorMessage = error.errors[0].message;
+        return res.status(400).json(fail({ message: errorMessage }));
+      }
       res.status(500).json(fail("Erro ao cadastrar musica"));
     }
   }
@@ -141,6 +150,10 @@ router.put(
       );
     } catch (error) {
       console.error(error);
+      if (error.errors && error.errors[0].validatorKey === "len") {
+        const errorMessage = error.errors[0].message;
+        return res.status(400).json(fail({ message: errorMessage }));
+      }
       res
         .status(500)
         .json(fail({ message: "Erro ao atualizar dados da música" }));

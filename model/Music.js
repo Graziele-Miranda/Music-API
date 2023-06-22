@@ -9,12 +9,19 @@ const MusicModel = sequelize.define("Music", {
     autoIncrement: true,
     primaryKey: true,
   },
+
   titulo: {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    validate: {
+      len: {
+        args: [2, 50],
+        msg: "O título deve ter entre 2 à 50 caracteres",
+      },
+    },
+    duracao: DataTypes.STRING,
   },
-  duracao: DataTypes.STRING,
 });
 
 MusicModel.belongsTo(Artist.Model, {
@@ -50,16 +57,6 @@ module.exports = {
       artista = artista.id;
       album = album.id;
     } else if (typeof artista === "string" && typeof album == "string") {
-      const existingArtist = await Artist.getById(id);
-
-      const existingAlbum = await Album.getById(id);
-
-      if (!existingArtist || !existingAlbum) {
-        throw new Error("Artista ou álbum não encontrados");
-      }
-
-      artista = existingArtist.id;
-      album = existingAlbum.id;
     }
 
     const music = await MusicModel.create({
@@ -90,12 +87,16 @@ module.exports = {
     return await MusicModel.findByPk(id);
   },
 
-  getAlbumMusic: async function (id) {
+  getAlbumMusic: async function (id, limite, pagina) {
+    const offset = (pagina - 1) * limite;
     return await MusicModel.findAll({
       where: {
         album: id,
       },
       include: [Artist.Model, Album.Model],
+      limit: limite,
+      offset: offset,
+      order: [["id", "ASC"]],
     });
   },
 

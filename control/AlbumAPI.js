@@ -6,8 +6,8 @@ const { authenticateToken } = require("../helpers/auth");
 const AlbumDAO = require("../model/Album");
 const ArtistDAO = require("../model/Artist");
 
-router.get("/list", async (req, res) => {
-  const limite = parseInt(req.query.limit) || 10;
+router.get("/", async (req, res) => {
+  const limite = parseInt(req.query.limit) || 5;
   const pagina = parseInt(req.query.page) || 1;
 
   try {
@@ -52,16 +52,7 @@ router.post(
     if (!genero) {
       return res.status(400).json(fail("O campo gênero deve ser preenchido"));
     }
-    if (titulo.length < 2) {
-      return res
-        .status(400)
-        .json(fail("O campo titulo ter mais de 2 caracteres"));
-    }
-    if (!Number.isInteger(ano)) {
-      return res
-        .status(400)
-        .json(fail("O campo ano deve ser um número inteiro"));
-    }
+
     try {
       const existingAlbum = await AlbumDAO.getByName(titulo);
       if (existingAlbum) {
@@ -76,6 +67,14 @@ router.post(
       res.json(sucess({ message: "Álbum cadastrado com sucesso", albumCad }));
     } catch (error) {
       console.error(error);
+
+      if (
+        (error.errors && error.errors[0].validatorKey === "isNumeric") ||
+        (error.errors && error.errors[0].validatorKey === "len")
+      ) {
+        const errorMessage = error.errors[0].message;
+        return res.status(400).json(fail({ message: errorMessage }));
+      }
       res.status(500).json(fail("Erro ao cadastrar álbum"));
     }
   }

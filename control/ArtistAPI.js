@@ -61,6 +61,10 @@ router.post(
       );
     } catch (error) {
       console.error(error);
+      if (error.errors && error.errors[0].validatorKey === "len") {
+        const errorMessage = error.errors[0].message;
+        return res.status(400).json(fail({ message: errorMessage }));
+      }
       res.status(500).json(fail("Erro ao cadastrar artista"));
     }
   }
@@ -93,7 +97,6 @@ router.put(
 
     try {
       const artist = await ArtistDAO.getById(id);
-
       if (!artist) {
         return res
           .status(404)
@@ -120,6 +123,10 @@ router.put(
       );
     } catch (error) {
       console.error(error);
+      if (error.errors && error.errors[0].validatorKey === "len") {
+        const errorMessage = error.errors[0].message;
+        return res.status(400).json(fail({ message: errorMessage }));
+      }
       res
         .status(500)
         .json(fail({ message: "Erro ao atualizar dados do artista" }));

@@ -5,19 +5,6 @@ const UserDAO = require("../model/User");
 const { authenticateToken } = require("../helpers/auth");
 const jwt = require("jsonwebtoken");
 
-//listar todos users
-//inserir nos parametros, ex: limit = 10, page=2
-router.get("/", async (req, res) => {
-  const limite = parseInt(req.query.limit) || 5;
-  const pagina = parseInt(req.query.page) || 1;
-
-  try {
-    const users = await UserDAO.list(limite, pagina);
-    res.json(sucess(users, "list"));
-  } catch (error) {
-    res.status(500).json(fail("Erro ao obter listagem de usuários."));
-  }
-});
 // Rota de login e geração de token JWT
 router.post("/login", async (req, res) => {
   const { usuario, senha } = req.body;
@@ -40,9 +27,29 @@ router.post("/login", async (req, res) => {
     );
     res.json({ token });
   } catch (error) {
-    console.error(fail("Erro ao fazer login:", error));
-    res.status(500).json(fail({ error: "Erro ao fazer login" }));
+    console.error(error);
+    res.status(500).json(fail({ message: "Erro ao realizar login" }));
   }
+});
+
+//listar todos users
+//inserir nos parametros, ex: limit = 10, page=2
+router.get("/list-user", authenticateToken, async (req, res) => {
+  const limite = parseInt(req.query.limit) || 5;
+  const pagina = parseInt(req.query.page) || 1;
+
+  try {
+    const users = await UserDAO.list(limite, pagina);
+    res.json(sucess(users, "list"));
+  } catch (error) {
+    res.status(500).json(fail("Erro ao obter listagem de usuários."));
+  }
+});
+
+router.get("/list-user/:id", authenticateToken, async (req, res) => {
+  let obj = await UserDAO.getById(req.params.id);
+  if (obj) res.json(sucess(obj));
+  else res.status(500).json(fail("Não foi possível localizar o usuário"));
 });
 
 // -- Users Comuns
@@ -87,6 +94,15 @@ router.post("/create-user", async (req, res) => {
     res.json(sucess({ message: "Usuário cadastrado com sucesso", user }));
   } catch (error) {
     console.error(error);
+
+    if (
+      (error.errors && error.errors[0].validatorKey === "isEmail") ||
+      (error.errors && error.errors[0].validatorKey === "len")
+    ) {
+      const errorMessage = error.errors[0].message;
+      return res.status(400).json(fail({ message: errorMessage }));
+    }
+
     res.status(500).json(fail({ message: "Erro ao cadastrar usuário" }));
   }
 });
@@ -167,7 +183,18 @@ router.put("/update-user/:id", authenticateToken, async (req, res) => {
     );
   } catch (error) {
     console.error(error);
-    res.status(500).json(fail({ message: "Erro ao atualizar dados pessoais" }));
+
+    if (
+      (error.errors && error.errors[0].validatorKey === "isEmail") ||
+      (error.errors && error.errors[0].validatorKey === "len")
+    ) {
+      const errorMessage = error.errors[0].message;
+      return res.status(400).json(fail({ message: errorMessage }));
+    }
+
+    res
+      .status(500)
+      .json(fail({ message: "Erro ao atualizar dados do usuário" }));
   }
 });
 
@@ -226,6 +253,13 @@ router.post("/register-admin", authenticateToken, async (req, res) => {
     );
   } catch (error) {
     console.error(error);
+    if (
+      (error.errors && error.errors[0].validatorKey === "isEmail") ||
+      (error.errors && error.errors[0].validatorKey === "len")
+    ) {
+      const errorMessage = error.errors[0].message;
+      return res.status(400).json(fail({ message: errorMessage }));
+    }
     res.status(500).json(fail({ message: "Erro ao cadastrar administrador" }));
   }
 });
@@ -302,7 +336,18 @@ router.put("/update-adm/:id", authenticateToken, async (req, res) => {
     res.json(sucess({ message: "Dados pessoais atualizados com sucesso" }));
   } catch (error) {
     console.error(error);
-    res.status(500).json(fail({ message: "Erro ao atualizar dados pessoais" }));
+
+    if (
+      (error.errors && error.errors[0].validatorKey === "isEmail") ||
+      (error.errors && error.errors[0].validatorKey === "len")
+    ) {
+      const errorMessage = error.errors[0].message;
+      return res.status(400).json(fail({ message: errorMessage }));
+    }
+
+    res
+      .status(500)
+      .json(fail({ message: "Erro ao atualizar dados do usuário" }));
   }
 });
 

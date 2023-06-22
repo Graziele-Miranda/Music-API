@@ -10,20 +10,44 @@ const UserModel = sequelize.define("User", {
   usuario: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      len: {
+        args: [3, 15],
+        msg: "O nome do usuario deve ter no mínimo 3 caracteres e máximo 15",
+      },
+    },
     unique: true,
   },
   nome: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      len: {
+        args: [3, 30],
+        msg: "O nome deve ter no mínimo 3 caracteres e máximo 30",
+      },
+    },
   },
   senha: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      len: {
+        args: [4, 15],
+        msg: "O senha deve ter no mínimo 4 caracteres e máximo 15",
+      },
+    },
   },
   email: {
     type: DataTypes.STRING,
     unique: true,
     allowNull: false,
+    validate: {
+      isEmail: {
+        args: true,
+        msg: "Formato de e-mail inválido",
+      },
+    },
   },
   administrador: {
     type: DataTypes.BOOLEAN,

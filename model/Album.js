@@ -15,10 +15,21 @@ const AlbumModel = sequelize.define("Album", {
   ano: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    validate: {
+      isNumeric: {
+        msg: "O ano deve ser numeral",
+      },
+    },
   },
   genero: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      len: {
+        args: [3, 20],
+        msg: "O genero deve ter no mínimo 3 caracteres e máximo 20",
+      },
+    },
   },
 });
 

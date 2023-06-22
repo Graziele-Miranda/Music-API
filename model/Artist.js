@@ -11,10 +11,22 @@ const ArtistModel = sequelize.define("Artist", {
     type: DataTypes.STRING,
     allowNull: false,
     unique: true,
+    validate: {
+      len: {
+        args: [3, 20],
+        msg: "O nome do artista deve ter entre 3 à 20 caracteres",
+      },
+    },
   },
   genero: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      len: {
+        args: [3, 20],
+        msg: "O genero deve de 3 à 20 caracteres",
+      },
+    },
   },
   paisOrigem: DataTypes.STRING,
   biografia: DataTypes.TEXT,
