@@ -110,16 +110,6 @@ router.put(
     if (!genero) {
       return res.status(400).json(fail("O campo genero deve ser preenchido"));
     }
-    if (titulo.length < 2) {
-      return res
-        .status(400)
-        .json(fail("O campo titulo ter mais de 2 caracteres"));
-    }
-    if (!Number.isInteger(ano)) {
-      return res
-        .status(400)
-        .json(fail("O campo ano deve ser um número inteiro"));
-    }
 
     try {
       const album = await AlbumDAO.getById(id);
@@ -153,9 +143,14 @@ router.put(
       );
     } catch (error) {
       console.error(error);
-      res
-        .status(500)
-        .json(fail({ message: "Erro ao atualizar dados do album" }));
+      if (
+        (error.errors && error.errors[0].validatorKey === "isNumeric") ||
+        (error.errors && error.errors[0].validatorKey === "len")
+      ) {
+        const errorMessage = error.errors[0].message;
+        return res.status(400).json(fail({ message: errorMessage }));
+      }
+      res.status(500).json(fail("Erro ao atualizar álbum"));
     }
   }
 );

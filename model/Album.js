@@ -11,6 +11,12 @@ const AlbumModel = sequelize.define("Album", {
   titulo: {
     type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      len: {
+        args: [2, 25],
+        msg: "O título deve ter no mínimo 2 caracteres e máximo 25",
+      },
+    },
   },
   ano: {
     type: DataTypes.INTEGER,
@@ -134,8 +140,9 @@ module.exports = {
       },
       limit: limite,
       offset: offset,
-      order: [["id", "ASC"]],
+      order: [["ano", "ASC"]],
     });
   },
+
   Model: AlbumModel,
 };
