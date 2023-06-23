@@ -6,7 +6,7 @@ const ArtistDAO = require("../model/Artist");
 
 const { authenticateToken } = require("../helpers/auth");
 
-router.get("/", async (req, res) => {
+router.get("/list-artist", async (req, res) => {
   const limite = parseInt(req.query.limit) || 5;
   const pagina = parseInt(req.query.page) || 1;
 
@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/list-artist/:id", async (req, res) => {
   let obj = await ArtistDAO.getById(req.params.id);
   if (obj) res.json(sucess(obj));
   else res.status(500).json(fail("Não foi possível localizar o artista"));

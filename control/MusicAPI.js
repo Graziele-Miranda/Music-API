@@ -8,7 +8,7 @@ const ArtistDAO = require("../model/Artist");
 
 const { authenticateToken } = require("../helpers/auth");
 
-router.get("/", async (req, res) => {
+router.get("/list-music", async (req, res) => {
   const limite = parseInt(req.query.limit) || 5;
   const pagina = parseInt(req.query.page) || 1;
 
@@ -20,13 +20,13 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:id", async (req, res) => {
+router.get("/list-music/:id", async (req, res) => {
   let obj = await MusicDAO.getById(req.params.id);
   if (obj) res.json(sucess(obj));
   else res.status(500).json(fail("Não foi possível localizar a musica"));
 });
 //Mostrar lista de músicas de um determinado album
-router.get("/:id/albums", async (req, res) => {
+router.get("/list-music/:id/albums", async (req, res) => {
   const id = req.params.id;
   const limite = parseInt(req.query.limit) || 5;
   const pagina = parseInt(req.query.page) || 1;
