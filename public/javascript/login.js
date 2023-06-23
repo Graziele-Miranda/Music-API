@@ -17,7 +17,7 @@ function submitLoginForm(event) {
       if (data.token) {
         // Login bem-sucedido, ir para página de albuns
         localStorage.setItem("token", data.token);
-        window.location.href = "/albums";
+        window.location.href = "/albums/list-album";
       } else {
         alert("Usuário ou senha inválidos");
       }
