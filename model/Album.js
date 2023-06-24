@@ -13,8 +13,8 @@ const AlbumModel = sequelize.define("Album", {
     allowNull: false,
     validate: {
       len: {
-        args: [2, 25],
-        msg: "O título deve ter no mínimo 2 caracteres e máximo 25",
+        args: [2, 40],
+        msg: "O título deve ter no mínimo 2 caracteres e máximo 40",
       },
     },
   },

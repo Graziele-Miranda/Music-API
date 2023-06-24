@@ -9,8 +9,8 @@ const ArtistDAO = require("../model/Artist");
 const { authenticateToken } = require("../helpers/auth");
 
 router.get("/list-music", async (req, res) => {
-  const limite = parseInt(req.query.limit) || 5;
-  const pagina = parseInt(req.query.page) || 1;
+  const limite = parseInt(req.body.limit) || 5;
+  const pagina = parseInt(req.body.page) || 1;
 
   try {
     const musics = await MusicDAO.list(limite, pagina);
@@ -34,7 +34,7 @@ router.get("/list-music/:id/albums", async (req, res) => {
   try {
     const musicAlbums = await MusicDAO.getAlbumMusic(id, limite, pagina);
     if (musicAlbums.length === 0) {
-      return res.json(fail("Não há álbuns para essa década"));
+      return res.json(fail("Não há músicas para esse álbum"));
     }
     res.json(sucess(musicAlbums, "albums"));
   } catch (error) {
