@@ -3,6 +3,10 @@ const sequelize = require("../helpers/connection");
 const Artist = require("./Artist");
 
 const AlbumModel = sequelize.define("Album", {
+  visitas: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -61,7 +65,7 @@ module.exports = {
     });
     return albums;
   },
-  save: async function (titulo, artista, ano, genero) {
+  save: async function (titulo, artista, ano, genero, visitas) {
     if (artista instanceof Artist.Model) {
       artista = artista.id;
     } else if (typeof artista === "string") {
@@ -78,6 +82,7 @@ module.exports = {
       artista: artista,
       ano: ano,
       genero: genero,
+      visitas: visitas,
     });
     return album;
   },
@@ -97,9 +102,14 @@ module.exports = {
     const album = await AlbumModel.findByPk(id);
     return album.destroy();
   },
-
+  //adicionar um novo campo,onde ao pesquisar  pelo id, ele conta quantas vezes aquele album foi visualizado
   getById: async function (id) {
-    return await AlbumModel.findByPk(id);
+    const album = await AlbumModel.findByPk(id);
+    if (album) {
+      album.visitas += 1;
+      await album.save();
+    }
+    return album;
   },
 
   getByName: async function (titulo) {
